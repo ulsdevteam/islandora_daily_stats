@@ -1,0 +1,8 @@
+name = Islandora Daily Stats
+description = To provide stats on the daily counts of fedora objects
+package = Islandora Tools
+version = 7.x-1.6
+core = 7.x
+dependencies[] = islandora
+dependencies[] = islandora_solr
+stylesheets[all][] = css/islandora_stats.css

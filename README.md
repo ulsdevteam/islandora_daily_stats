@@ -1,0 +1,27 @@
+# Islandora Daily Stats [![Build Status](https://travis-ci.org/ulsdevteam/islandora_daily_stats.png?branch=7.x)](https://travis-ci.org/ulsdevteam/islandora_daily_stats)
+
+## Installation
+This module requires installing a CRON script that will create daily summary results by running Solr queries against the various models and collections and storing these results in MySQL tables.
+
+The CRON scripts are included in the /cron folder.  They can be run via cron job from their current location.
+
+>`1 0 * * * /usr/local/bin/cronic /usr/bin/php /opt/islandora_cron/stats-contentmodel-counts.php`
+>`5 0 * * * /usr/local/bin/cronic /usr/bin/php /opt/islandora_cron/stats-created-counts.php`
+
+
+## Usage
+When this module is installed and configured, there will be one new result each day.  In order to view the reports, navigate to `/islandora/daily_stats/allmodels`.
+
+
+## Maintainers/Sponsors
+Current maintainers:
+
+* [Brian Gillingham](https://github.com/bgilling)
+
+## Development
+
+If you would like to contribute to this module, please check out [CONTRIBUTING.md](CONTRIBUTING.md). In addition, we have helpful [Documentation for Developers](https://github.com/Islandora/islandora/wiki#wiki-documentation-for-developers) info, as well as our [Developers](http://islandora.ca/developers) section on the [Islandora.ca](http://islandora.ca) site.
+
+## License
+
+[GPLv3](http://www.gnu.org/licenses/gpl-3.0.txt)

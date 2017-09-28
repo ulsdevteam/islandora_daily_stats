@@ -1,0 +1,38 @@
+<?php
+
+function islandora_daily_stats_menu() {
+  return array(
+    // the search page handler is configured under Site information | "Error Pages" here admin/config/system/site-information.
+    // it should be configured to point to this menu handler.
+    'islandora/dailystats/%' => array(
+      'title' => 'Islandora Daily Stats',
+      'page callback' => array('islandora_daily_stats_page', 2),
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/islandora_daily_stats.page.inc',
+      'access arguments' => array(ISLANDORA_VIEW_OBJECTS),
+    ),
+    'islandora/dailystats/%/%/%' => array(
+      'title' => 'Islandora Daily Stats',
+      'page callback' => array('islandora_daily_stats_page', 2, 3, 4),
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/islandora_daily_stats.page.inc',
+      'access arguments' => array(ISLANDORA_VIEW_OBJECTS),
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function islandora_daily_stats_theme() {
+  return array(
+    // to remove duplicate pager and display_links
+    'islandora_daily_stats_page' => array(
+      'template' => 'theme/islandora-daily-stats-page',
+      'variables' => array(
+        'filter_links' => '',
+        'stats_table' => '',
+      ),
+    ),
+  );
+}
