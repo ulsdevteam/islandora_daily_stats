@@ -1,22 +1,27 @@
 <?php
 
+// Permissions.
+define('ISLANDORA_DAILY_STATS', 'use daily stats');
+
 function islandora_daily_stats_menu() {
   return array(
-    // the search page handler is configured under Site information | "Error Pages" here admin/config/system/site-information.
-    // it should be configured to point to this menu handler.
     'islandora/dailystats/%' => array(
       'title' => 'Islandora Daily Stats',
-      'page callback' => array('islandora_daily_stats_page', 2),
+      'description' => 'foo',
+      'page callback' => array('islandora_daily_stats_page'),
+      'page arguments' => array(2),
       'type' => MENU_CALLBACK,
       'file' => 'includes/islandora_daily_stats.page.inc',
-      'access arguments' => array(ISLANDORA_VIEW_OBJECTS),
+      'access arguments' => array(ISLANDORA_DAILY_STATS),
     ),
     'islandora/dailystats/%/%/%' => array(
       'title' => 'Islandora Daily Stats',
-      'page callback' => array('islandora_daily_stats_page', 2, 3, 4),
+      'description' => 'foo',
+      'page callback' => array('islandora_daily_stats_page'),
+      'page arguments' => array(2, 3, 4),
       'type' => MENU_CALLBACK,
       'file' => 'includes/islandora_daily_stats.page.inc',
-      'access arguments' => array(ISLANDORA_VIEW_OBJECTS),
+      'access arguments' => array(ISLANDORA_DAILY_STATS),
     ),
   );
 }
@@ -33,6 +38,18 @@ function islandora_daily_stats_theme() {
         'filter_links' => '',
         'stats_table' => '',
       ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function islandora_daily_stats_permission() {
+  return array(
+    ISLANDORA_DAILY_STATS => array(
+      'title' => t('Use the Islandora Daily Stats'),
+      'description' => t('User can use the Islandora Daily Stats.'),
     ),
   );
 }

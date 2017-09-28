@@ -3,6 +3,7 @@
 function islandora_daily_stats_page($models, $date_start = '', $date_end = '') {
   module_load_include('inc', 'islandora_daily_stats', 'includes/utilities');
 
+  $filters = array();
   if ($models <> 'allmodels') {
     $filters['model'] = urldecode($models);
   }
