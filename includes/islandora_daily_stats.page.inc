@@ -1,5 +1,23 @@
 <?php
 
+/**
+ * @file
+ * Main page handler function for Islandora Daily Stats module.
+ */
+
+/**
+ * This will control the variables that will make up any stats report.
+ *
+ * @param string $models
+ *   CSV of models for the report data -- uses "allmodels" when not filtered.
+ * @param string $date_start
+ *   (optional) Start date for report data.
+ * @param string $date_end
+ *   (optional) Ending date for report data.
+ * 
+ * @return string
+ *   Page markup html.
+ */
 function islandora_daily_stats_page($models, $date_start = '', $date_end = '') {
   module_load_include('inc', 'islandora_daily_stats', 'includes/utilities');
 
@@ -11,8 +29,8 @@ function islandora_daily_stats_page($models, $date_start = '', $date_end = '') {
   $filter_links = islandora_daily_stats_make_filter_links($filters);
   $stats_table = islandora_daily_stats_get_stats_table($filters);
 
-  return theme('islandora_daily_stats_page', array('filter_links' => $filter_links,
-    'stats_table' => $stats_table,
+  return theme('islandora_daily_stats_page', array(
+      'filter_links' => $filter_links,
+      'stats_table' => $stats_table,
   ));
 }
-

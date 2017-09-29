@@ -1,8 +1,34 @@
 <?php
 
+/**
+ * @file
+ * Defines all the hooks this module implements.
+ *
+ * islandora_daily_stats.module: defines paths as entry points and acts
+ *  as a hub for dispatching tasks to other modules.
+ *
+ * This file is a utility module for use with Islandora.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with the program.  If not, see <http ://www.gnu.org/licenses/>.
+ */
+
 // Permissions.
 define('ISLANDORA_DAILY_STATS', 'use daily stats');
 
+/**
+ * Implements hook_menu().
+ */
 function islandora_daily_stats_menu() {
   return array(
     'islandora/dailystats/%' => array(
@@ -31,7 +57,6 @@ function islandora_daily_stats_menu() {
  */
 function islandora_daily_stats_theme() {
   return array(
-    // to remove duplicate pager and display_links
     'islandora_daily_stats_page' => array(
       'template' => 'theme/islandora-daily-stats-page',
       'variables' => array(
