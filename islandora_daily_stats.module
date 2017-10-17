@@ -66,6 +66,7 @@ function islandora_daily_stats_preprocess_page(&$vars) {
       $module_path = drupal_get_path('module', 'islandora_daily_stats');
       drupal_add_css($module_path . '/css/islandora_daily_stats.css');
       drupal_add_js('sites/all/libraries/d3/d3.js');
+      $vars['page']['sidebar'] = array();
     }
   }
 }
