@@ -27,10 +27,12 @@ function islandora_daily_stats_page($models, $date_start = '', $date_end = '') {
   }
 
   $filter_links = islandora_daily_stats_make_filter_links($filters);
-  $stats_table = islandora_daily_stats_get_stats_table($filters);
+  $result =  islandora_daily_stats_get_stats($filters);
 
   return theme('islandora_daily_stats_page', array(
       'filter_links' => $filter_links,
-      'stats_table' => $stats_table,
+      'stats_table' => $result['stats_table'],
+      'node_data' => $result['node_data'],
+      'line_data' => $result['line_data'],
   ));
 }

@@ -10,6 +10,8 @@ The CRON scripts are included in the /cron folder.  They can be run via cron job
 >`1 0 * * * /usr/local/bin/cronic /usr/bin/php /opt/islandora_cron/stats-contentmodel-counts.php`
 >`5 0 * * * /usr/local/bin/cronic /usr/bin/php /opt/islandora_cron/stats-created-counts.php`
 
+### Installing d3 library
+This module makes use of the d3 javascript library.  It should be downloaded from https://d3js.org/ and extracted to sites/all/libraries/d3.
 
 
 ## Usage

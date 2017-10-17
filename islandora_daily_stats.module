@@ -33,7 +33,7 @@ function islandora_daily_stats_menu() {
   return array(
     'islandora/dailystats/%' => array(
       'title' => 'Islandora Daily Stats',
-      'description' => 'foo',
+      'description' => 'Islandora Daily Stats',
       'page callback' => array('islandora_daily_stats_page'),
       'page arguments' => array(2),
       'type' => MENU_CALLBACK,
@@ -42,7 +42,7 @@ function islandora_daily_stats_menu() {
     ),
     'islandora/dailystats/%/%/%' => array(
       'title' => 'Islandora Daily Stats',
-      'description' => 'foo',
+      'description' => 'Islandora Daily Stats',
       'page callback' => array('islandora_daily_stats_page'),
       'page arguments' => array(2, 3, 4),
       'type' => MENU_CALLBACK,
@@ -50,6 +50,24 @@ function islandora_daily_stats_menu() {
       'access arguments' => array(ISLANDORA_DAILY_STATS),
     ),
   );
+}
+
+/**
+ * Implements hook_presprocess_theme().
+ *
+ * This code will remove the sidebar and will add the stylesheet and js needed
+ * for the report display.
+ */
+function islandora_daily_stats_preprocess_page(&$vars) {
+  $item = menu_get_item();
+  if (is_array($item)) {
+    if ($item['path'] == 'islandora/dailystats/%' ||
+      (substr($item['path'], 0, 9) == 'islandora/dailystats/%/%/%')) {
+      $module_path = drupal_get_path('module', 'islandora_daily_stats');
+      drupal_add_css($module_path . '/css/islandora_daily_stats.css');
+      drupal_add_js('sites/all/libraries/d3/d3.js');
+    }
+  }
 }
 
 /**
@@ -62,6 +80,7 @@ function islandora_daily_stats_theme() {
       'variables' => array(
         'filter_links' => '',
         'stats_table' => '',
+        'node_data' => '',
       ),
     ),
   );

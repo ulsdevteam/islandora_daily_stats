@@ -1,0 +1,23 @@
+.active {
+  font-weight: bold;
+}
+
+#graph svg {
+  background-color: white;
+  border: 1px solid #888;
+}
+
+#graph {
+  background-color: #e9e9e9;
+  border: 1px solid #569;
+  margin: auto auto;
+}
+
+#tip {
+  left: 302px;
+  top: 459px;
+  position: relative;
+  background-color: #ffffd0;
+  border: 1px solid #999;
+  padding: 5px;     
+}
