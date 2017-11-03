@@ -73,8 +73,8 @@ function islandora_daily_stats_get_stats($filters) {
   $query->addField('m', 'model_desc');
   $query->addField('mc', 'pitt_count');
   $query->addField('mc', 'nonpitt_count');
-  $query->orderBy('mc.date', 'DESC');
-  $query->range(0, 500);
+  $query->orderBy('mc.date', 'ASC');
+  $query->range(0, 1500);
   $results = $query->execute()->fetchAll();
   $rows = array();
   $max_y = 0;
@@ -93,15 +93,13 @@ function islandora_daily_stats_get_stats($filters) {
       $models[$result_obj->model_desc] = $color_key;
     }
     $rows[] = array(
-      'date' => $result_obj->date,
+      'date' => date('m/d/Y', strtotime($result_obj->date)),
       'model' => $result_obj->model_desc,
       'pitt_count' => $result_obj->pitt_count,
       'nonpitt_count' => $result_obj->nonpitt_count,
     );
     $max_x++;
   }
-  $headers = array('Date', 'Model', 'Pitt Count', 'Non-Pitt Count');
-  $stats_table = theme('table', array('header' => $headers, 'rows' => $rows));
 
   // The json array must be normalized to fit in the chart canvas which is
   // 900 x 400 pixels;
@@ -111,16 +109,16 @@ function islandora_daily_stats_get_stats($filters) {
   $last_date = '';
   $date_ticks = 0;
   foreach ($rows as $idx => $row_array) {
-    $x = 904 - round(900 * $idx / $max_x, 0);
+    $x = round(900 * $idx / $max_x, 0);
     $y = 404 - round(400 * $row_array['pitt_count'] / $max_y, 0);
     $class = 'nodes';
     if ($last_date <> $row_array['date']) {
       $date_ticks++;
       $last_date = $row_array['date'];
     }
-    $r = (($date_ticks % 5) == 0) ? ((($date_ticks % 10) == 0) ? 11 : 8) : 6;
+    $r = (($date_ticks % 5) == 0) ? ((($date_ticks % 10) == 0) ? 5 : 3) : 3;
     $node_array[] = array('x' => $x, 'y' => $y, 
-        'title' => number_format($row_array['pitt_count']) . " " . $row_array['model'] . " objects (" . date('m/d/Y', strtotime($row_array['date'])) . ")",
+        'title' => $row_array['pitt_count'] . " " . $row_array['model'] . " objects (" . $row_array['date'] . ")",
         'r' => $r, 'color' => $models[$row_array['model']]);
   }
 
@@ -137,12 +135,16 @@ function islandora_daily_stats_get_stats($filters) {
     $x = 904 - round(900 * $idx / $max_x, 0);
     $y = 404 - round(400 * $row_array['pitt_count'] / $max_y, 0);
     $line_array_models[$row_array['model']]['target'] = array('x' => $x, 'y' => $y);
+    $rows[$idx]['pitt_count'] = array('data' => number_format($rows[$idx]['pitt_count']), 'class'=>'cell_numeric');
+    $rows[$idx]['nonpitt_count'] = array('data' => number_format($rows[$idx]['nonpitt_count']), 'class'=>'cell_numeric');
   }
+
+  $headers = array('Date', 'Model', 'Pitt Count', 'Non-Pitt Count');
+  $stats_table = theme('table', array('header' => $headers, 'rows' => $rows));
 
   foreach ($line_array_models as $model => $line_array_model) {
     $line_array = array_merge($line_array, $line_array_models[$model]);
   }
-
   $node_data = json_encode($node_array);
   $line_data = json_encode($line_array);
 
@@ -182,11 +184,11 @@ function islandora_daily_stats_make_filter_links($filters) {
 
   $filter_links = array();
   $filter_links[] = (count($selected_models_arr) < 1) ? '<span class="active">All models</span>' :
-        l('ALL MODELS', 'islandora/dailystats/allmodels');
+        l('ALL MODELS', 'admin/reports/islandora/dailystats/allmodels');
   foreach ($results as $result_obj) {
     $filter_links[] = (!(array_search($result_obj->model, $selected_models_arr) === FALSE)) ?
         '<span class="active">' . $result_obj->model_desc . '</span>' :
-        l($result_obj->model_desc, 'islandora/dailystats/' . $result_obj->model);
+        l($result_obj->model_desc, 'admin/reports/islandora/dailystats/' . $result_obj->model);
   }
   return implode(" | ", $filter_links);
 }

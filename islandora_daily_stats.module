@@ -31,20 +31,31 @@ define('ISLANDORA_DAILY_STATS', 'use daily stats');
  */
 function islandora_daily_stats_menu() {
   return array(
-    'islandora/dailystats/%' => array(
+    // change to use admin/reports/.. so that this appears under the reports page.
+    'admin/reports/islandora/dailystats/allmodels' => array(
+//    'islandora/dailystats/%' => array(
       'title' => 'Islandora Daily Stats',
       'description' => 'Islandora Daily Stats',
       'page callback' => array('islandora_daily_stats_page'),
-      'page arguments' => array(2),
+      'page arguments' => array(4),
+      'file' => 'includes/islandora_daily_stats.page.inc',
+      'access arguments' => array(ISLANDORA_DAILY_STATS),
+    ),
+    'admin/reports/islandora/dailystats/%' => array(
+//    'islandora/dailystats/%' => array(
+      'title' => 'Islandora Daily Stats',
+      'description' => 'Islandora Daily Stats',
+      'page callback' => array('islandora_daily_stats_page'),
+      'page arguments' => array(4),
       'type' => MENU_CALLBACK,
       'file' => 'includes/islandora_daily_stats.page.inc',
       'access arguments' => array(ISLANDORA_DAILY_STATS),
     ),
-    'islandora/dailystats/%/%/%' => array(
+    'admin/reports/islandora/dailystats/%/%/%' => array(
       'title' => 'Islandora Daily Stats',
       'description' => 'Islandora Daily Stats',
       'page callback' => array('islandora_daily_stats_page'),
-      'page arguments' => array(2, 3, 4),
+      'page arguments' => array(4, 5, 6),
       'type' => MENU_CALLBACK,
       'file' => 'includes/islandora_daily_stats.page.inc',
       'access arguments' => array(ISLANDORA_DAILY_STATS),
@@ -61,12 +72,12 @@ function islandora_daily_stats_menu() {
 function islandora_daily_stats_preprocess_page(&$vars) {
   $item = menu_get_item();
   if (is_array($item)) {
-    if ($item['path'] == 'islandora/dailystats/%' ||
-      (substr($item['path'], 0, 9) == 'islandora/dailystats/%/%/%')) {
+    if ($item['path'] == 'admin/reports/islandora/dailystats/%' ||
+      (substr($item['path'], 0, 9) == 'admin/reports/islandora/dailystats/%/%/%')) {
       $module_path = drupal_get_path('module', 'islandora_daily_stats');
       drupal_add_css($module_path . '/css/islandora_daily_stats.css');
       drupal_add_js('sites/all/libraries/d3/d3.js');
-      $vars['page']['sidebar'] = array();
+      $vars['sidebar'] = array();
     }
   }
 }

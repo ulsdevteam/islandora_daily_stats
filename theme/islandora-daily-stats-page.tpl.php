@@ -43,10 +43,8 @@
   // show tooltip when mouse hovers over dot
   function handleMouseMove(e){
     var canvasOffset = jQuery("#graph").offset();
-    var offsetX = canvasOffset.left;
-    // Why does subtract 300 work?
-    var offsetY = canvasOffset.top;
-
+    var offsetX = canvasOffset.left - jQuery(window).scrollLeft();
+    var offsetY = canvasOffset.top - jQuery(window).scrollTop();
     var tipCanvas = document.getElementById("tip");
     var tipCtx = document.getElementById("svg");
 
@@ -58,22 +56,20 @@
     var useTitle = '';
     for (var i = 0; i < nodes.length; i++) {
       var dot = nodes[i];
-      var dotR = dot.r + 2;
+      var dotR = dot.r + 6;
       var dx = mouseX - dot.x;
       var dy = mouseY - dot.y;
       if (dx * dx + dy * dy < dotR) {
-        tipCanvas.style.left = (dot.x) + "px";
-        tipCanvas.style.top = (dot.y - 40) + "px";
+        tipCanvas.style.left = (mouseX) + "px";
+        tipCanvas.style.top = (mouseY + 20) + "px";
         useTitle = dot.title;
         hit = true;
       }
     }
+
     document.getElementById("2d").textContent = useTitle;
     if (!hit) {
-      tipCanvas.style.left = "-200px"; //display = 'none';
-    }
-    else {
-      // jQuery("#tip").show();
+      tipCanvas.style.left = "-400px";
     }
   }
 

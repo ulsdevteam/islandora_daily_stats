@@ -28,7 +28,6 @@ function islandora_daily_stats_page($models, $date_start = '', $date_end = '') {
 
   $filter_links = islandora_daily_stats_make_filter_links($filters);
   $result =  islandora_daily_stats_get_stats($filters);
-
   return theme('islandora_daily_stats_page', array(
       'filter_links' => $filter_links,
       'stats_table' => $result['stats_table'],
