@@ -98,8 +98,8 @@ foreach ($cmodels as $model_id=>$cm) {
 
         $total_pitt = solr_query_totals_json($solr, $query_pitt);
         $total_nonpitt = solr_query_totals_json($solr, $query_nonpitt);
-        $sql_inserts[] = "REPLACE INTO islandora_stats_contentmodel_counts (`date`, `model_id`, `pitt_count`, `nonpitt_count`) ".
-                         "VALUES ('" . $report_date . "', " . $model_id . ", " . $total_pitt . ", " . $total_nonpitt . ");";
+        $sql_inserts[] = "REPLACE INTO islandora_stats_contentmodel_counts (`date_d`, `model_id`, `pitt_count`, `nonpitt_count`) ".
+                         "VALUES (DATE_FORMAT('" . $report_date . "','%Y/%m/%d'), " . $model_id . ", " . $total_pitt . ", " . $total_nonpitt . ");";
         $total = solr_query_totals_json($solr, $query_total);
 
         $label_pitt = $cmodel_desc[$model_id] . " (" . ISLANDORA_PREFIX . ":)";

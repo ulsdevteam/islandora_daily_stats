@@ -5,16 +5,33 @@
 #graph svg {
   background-color: white;
   border: 1px solid #888;
+  float: left;
 }
 
 #graph {
-  background-color: #e9e9e9;
-  border: 1px solid #569;
   margin: auto auto;
 }
 
+#color_key {
+  margin-left: 20px;
+  background-color: white;
+  border: 1px solid #888;  
+  float: left;
+}
+
+.model .color_sample {
+  float: left;
+  width: 60px;
+  max-width: 60px;
+  padding-right: 8px;
+}
+
+.model {
+  clear: both;
+}
+
 #tip {
-  left: 302px;
+  left: 0px;
   top: 459px;
   position: relative;
   background-color: #ffffd0;
@@ -23,6 +40,34 @@
 }
 
 .cell_numeric {
-    text-align: right;
-    font-family: Andale Mono, monospace;
+  text-align: right;
+  font-family: Andale Mono, monospace;
+}
+
+.overview_summary, .model_summary {
+  border: 1px solid #888;
+  background-color: #f7f7f7;
+  border-radius: 6px;
+  margin: 5px;
+  padding: 5px;
+}
+
+.model_summary {
+  width: 31%;
+  float: left;
+}
+
+.overview_summary h3, .model_summary h3 {
+  margin-top: 0;
+}
+
+.value {
+  float: left;
+  width: 20%;
+  padding-right: 10px;
+}
+
+.overview_summary label, .model_summary label {
+  width: 30%;
+  float: left;
 }

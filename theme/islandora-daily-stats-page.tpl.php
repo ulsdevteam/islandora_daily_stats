@@ -1,7 +1,8 @@
 
 <div class="filter_links"><?php print $filter_links; ?></div>
 <span id="tip"><span id="2d"></span></span>
-<div id="graph"></div>
+    <div id="graph"></div>
+    <div id="color_key"><?php print $color_key; ?></div>
 <?php print $stats_table; ?>
 <script type="text/javascript">
   var vis = d3.select("#graph")
@@ -47,7 +48,6 @@
     var offsetY = canvasOffset.top - jQuery(window).scrollTop();
     var tipCanvas = document.getElementById("tip");
     var tipCtx = document.getElementById("svg");
-
     mouseX=parseInt(e.clientX-offsetX);
     mouseY=parseInt(e.clientY-offsetY);
 
@@ -61,7 +61,12 @@
       var dy = mouseY - dot.y;
       if (dx * dx + dy * dy < dotR) {
         tipCanvas.style.left = (mouseX) + "px";
-        tipCanvas.style.top = (mouseY + 20) + "px";
+        if (mouseY < 300) {
+          tipCanvas.style.top = (mouseY + 44) + "px";
+        }
+        else {
+          tipCanvas.style.top = (mouseY - 10) + "px";
+        }
         useTitle = dot.title;
         hit = true;
       }

@@ -176,8 +176,8 @@ function counts_by_collection()
                 $one_collection = get_solr_collections($coll_query);
                 $total = $one_collection['total'];
                 print "$total";
-                $sql_inserts[] = "REPLACE INTO islandora_stats_collection_models (`date`, `PID`, `model_id`, `count`) " .
-                                 " VALUES ('" . $report_date . "', '" . $collection . "', 0, $total);";
+                $sql_inserts[] = "REPLACE INTO islandora_stats_collection_models (`date_d`, `PID`, `model_id`, `count`) " .
+                                 " VALUES (DATE_FORMAT('" . $report_date . "', '%Y/%m/%d'), '" . $collection . "', 0, $total);";
 
                 get_per_collection_counts_by_content_type($pid);
                 print "\n";
@@ -197,8 +197,8 @@ function get_per_collection_counts_by_content_type($pid)
         #print "\nQuery: $query_total\n";
         $result_total = solr_query_totals_json($solr, $query_total);
         print "\t$result_total";
-        $sql_inserts[] = "REPLACE INTO islandora_stats_collection_models (`date`, `PID`, `model_id`, `count`) " .
-                         " VALUES ('" . $report_date . "', '" . str_replace("\:", ":", $pid) . "', $model_id, $result_total);";
+        $sql_inserts[] = "REPLACE INTO islandora_stats_collection_models (`date_d`, `PID`, `model_id`, `count`) " .
+                         " VALUES (DATE_FORMAT('" . $report_date . "', '%Y/%m/%d'), '" . str_replace("\:", ":", $pid) . "', $model_id, $result_total);";
     }
 }
 

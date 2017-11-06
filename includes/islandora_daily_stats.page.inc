@@ -20,7 +20,6 @@
  */
 function islandora_daily_stats_page($models, $date_start = '', $date_end = '') {
   module_load_include('inc', 'islandora_daily_stats', 'includes/utilities');
-
   $filters = array();
   if ($models <> 'allmodels') {
     $filters['model'] = urldecode($models);
@@ -28,10 +27,13 @@ function islandora_daily_stats_page($models, $date_start = '', $date_end = '') {
 
   $filter_links = islandora_daily_stats_make_filter_links($filters);
   $result =  islandora_daily_stats_get_stats($filters);
+  $models_colors = $result['color_key_models'];
+  ksort($models_colors);
   return theme('islandora_daily_stats_page', array(
       'filter_links' => $filter_links,
       'stats_table' => $result['stats_table'],
       'node_data' => $result['node_data'],
       'line_data' => $result['line_data'],
+      'color_key' => theme('islandora_daily_stats_color_key', array('model_colors' => $models_colors)),
   ));
 }

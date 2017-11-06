@@ -54,8 +54,8 @@ function islandora_daily_stats_get_stats($filters) {
   $pop_these_colors = $chart_colors;
   $query = db_select('islandora_stats_contentmodel_counts', 'mc');
   if (count($filters) < 1) {
-    // Add a filter for last year...
-    $query->where('mc.date >= DATE_SUB(NOW(), INTERVAL 1 YEAR)');
+    // Add a filter for last 6 months...
+    $query->where('mc.date_d >= DATE_SUB(NOW(), INTERVAL 6 MONTH)');
   }
   else {
     foreach ($filters as $filter_field => $filter_value) {
@@ -69,12 +69,12 @@ function islandora_daily_stats_get_stats($filters) {
     }
   }
   $query->innerJoin('islandora_stats_models', 'm', 'm.model_id = mc.model_id');
-  $query->addField('mc', 'date');
+  $query->addField('mc', 'date_d');
   $query->addField('m', 'model_desc');
   $query->addField('mc', 'pitt_count');
   $query->addField('mc', 'nonpitt_count');
-  $query->orderBy('mc.date', 'ASC');
-  $query->range(0, 1500);
+  $query->orderBy('mc.date_d', 'ASC');
+  $query->range(0, 900);
   $results = $query->execute()->fetchAll();
   $rows = array();
   $max_y = 0;
@@ -93,7 +93,7 @@ function islandora_daily_stats_get_stats($filters) {
       $models[$result_obj->model_desc] = $color_key;
     }
     $rows[] = array(
-      'date' => date('m/d/Y', strtotime($result_obj->date)),
+      'date' => date('m/d/Y', strtotime($result_obj->date_d)),
       'model' => $result_obj->model_desc,
       'pitt_count' => $result_obj->pitt_count,
       'nonpitt_count' => $result_obj->nonpitt_count,
@@ -118,7 +118,7 @@ function islandora_daily_stats_get_stats($filters) {
     }
     $r = (($date_ticks % 5) == 0) ? ((($date_ticks % 10) == 0) ? 5 : 3) : 3;
     $node_array[] = array('x' => $x, 'y' => $y, 
-        'title' => $row_array['pitt_count'] . " " . $row_array['model'] . " objects (" . $row_array['date'] . ")",
+        'title' => number_format($row_array['pitt_count']) . " " . $row_array['model'] . " objects (" . $row_array['date'] . ")",
         'r' => $r, 'color' => $models[$row_array['model']]);
   }
 
@@ -152,6 +152,7 @@ function islandora_daily_stats_get_stats($filters) {
     'stats_table' => $stats_table,
     'node_data' => $node_data,
     'line_data' => $line_data,
+    'color_key_models' => $models,
   );
 
 }
@@ -182,13 +183,56 @@ function islandora_daily_stats_make_filter_links($filters) {
     $selected_models_arr = explode(",", $filters['model']);
   }
 
-  $filter_links = array();
-  $filter_links[] = (count($selected_models_arr) < 1) ? '<span class="active">All models</span>' :
-        l('ALL MODELS', 'admin/reports/islandora/dailystats/allmodels');
+  $grouped_links = $filter_links = array();
+
+  $grouped_links[] = l('ALL MODELS', 'admin/reports/islandora/dailystats/stats/allmodels');
+  $grouped_links[] = l('All Pages', 'admin/reports/islandora/dailystats/stats/pageCModel,manuscriptPageCModel,newspaperPageCModel');
+  $grouped_links[] = l('All Parent Objects', 'admin/reports/islandora/dailystats/stats/bookCModel,sp-audioCModel,collectionCModel,findingAidCModel,sp_large_image_cmodel,manuscriptCModel,newspaperIssueCModel,sp_pdf,sp_videoCModel');
   foreach ($results as $result_obj) {
     $filter_links[] = (!(array_search($result_obj->model, $selected_models_arr) === FALSE)) ?
         '<span class="active">' . $result_obj->model_desc . '</span>' :
-        l($result_obj->model_desc, 'admin/reports/islandora/dailystats/' . $result_obj->model);
+        l($result_obj->model_desc, 'admin/reports/islandora/dailystats/stats/' . $result_obj->model);
   }
-  return implode(" | ", $filter_links);
+  return implode(" | ", $grouped_links) . "<br>" . implode(" | ", $filter_links);
+}
+
+function islandora_daily_stats_get_stats_summary() {
+  $models_summary = array();
+
+  $overview_summary = array(
+      'name' => 'Overview',
+      'description' => 'This is an overview of the various content types that ' .
+        'were ingested over the last 30 days.  The primary object that was ingested ' .
+        'was pageCModel that had 30,203 new objects followed by bookCModel which had ' .
+        '230 new objects.',
+      'last_7_days' => 4128,
+      'last_7_change' => 2.1,
+      'last_30_days' => 33453,
+      'last_30_change' => 1.4,
+      'ytd' => 1418976,
+    );
+  $summary = theme('islandora_daily_stats_overview_summary', $overview_summary);;
+
+  $models_summary[] = array(
+      'name' => 'Book',
+      'today' => 0,
+      'last_7_days' => 0,
+      'last_7_change' => 0,
+      'last_30_days' => 42,
+      'last_30_change' => 1.5,
+      'ytd' => 3420,
+    );
+  $models_summary[] = array(
+      'name' => 'Book Pages',
+      'today' => 0,
+      'last_7_days' => 0,
+      'last_7_change' => 0,
+      'last_30_days' => 1742,
+      'last_30_change' => 1.256,
+      'ytd' => 1091876,
+    );
+  foreach ($models_summary as $model_summary) {
+    $summary .= theme('islandora_daily_stats_model_summary', $model_summary);
+  }
+  return $summary;
 }
