@@ -128,18 +128,15 @@ function islandora_daily_stats_theme() {
       'variables' => array(
         'name' => '',
         'description' => '',
+        'today' => 0,
         'yesterday' => 0,
-        'last_7_days' => 0,
-        'prev_7_days' => 0,
-        'last_30_days' => 0,
-        'prev_30_days' => 0,
       ),
     ),
     'islandora_daily_stats_model_summary' => array(
       'template' => 'theme/islandora-daily-stats-model-summary',
       'variables' => array(
         'name' => '',
-        'yesterday' => 0,
+        'today' => 0,
         'last_7_days' => 0,
         'prev_7_days' => 0,
         'last_30_days' => 0,

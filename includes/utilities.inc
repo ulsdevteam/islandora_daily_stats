@@ -213,19 +213,6 @@ function islandora_daily_stats_make_filter_links($filters) {
 }
 
 function islandora_daily_stats_get_stats_summary() {
-  $overview_summary = array(
-      'name' => 'Overview',
-      'description' => 'This is an overview of the various content types that ' .
-        'were ingested over the last 30 days.  The primary object that was ingested ' .
-        'was pageCModel that had 30,203 new objects followed by bookCModel which had ' .
-        '230 new objects.',
-      'last_7_days' => 4128,
-      'last_7_change' => 2.1,
-      'last_30_days' => 33453,
-      'last_30_days_change' => 1.4,
-    );
-  $summary = theme('islandora_daily_stats_overview_summary', $overview_summary);
-
   $query = db_select('islandora_stats_models', 'm');
   $query->addField('m', 'model');
   $query->addField('m', 'model_desc');
@@ -233,9 +220,71 @@ function islandora_daily_stats_get_stats_summary() {
   $results = $query->execute()->fetchAll();
 
   $models_summary = array();
+  $max_today_comp_last_30_top_models = array();
+  $max_today_comp_prev_30_top_models = array();
+
   foreach ($results as $model) {
-    $models_summary[] = islandora_daily_stats_get_model_summary($model);
+    $model_stats = islandora_daily_stats_get_model_summary($model);
+    $models_summary[] = $model_stats;
+    $this_pct_over_60_days = $model_stats['prev_30_days'] ? round(100 * ($model_stats['today'] - $model_stats['prev_30_days']) / $model_stats['prev_30_days'], 2) : 0;
+    $this_pct_over_30_days = $model_stats['last_30_days'] ? round(100 * ($model_stats['today'] - $model_stats['last_30_days']) / $model_stats['last_30_days'], 2) : 0;
+    if (count($max_today_comp_prev_30_top_models) < 1) {
+      $max_today_comp_prev_30_top_models[$model->model_desc] = $this_pct_over_60_days;
+    } else {
+      foreach ($max_today_comp_prev_30_top_models as $m => $v) {
+        if ($this_pct_over_60_days > $v) {
+          $max_today_comp_prev_30_top_models[$model->model_desc] = $this_pct_over_60_days;
+        }
+      }
+      asort($max_today_comp_prev_30_top_models);
+    }
+    if (count($max_today_comp_last_30_top_models) < 1) {
+      $max_today_comp_last_30_top_models[$model->model_desc] = $this_pct_over_30_days;
+    } else {
+      foreach ($max_today_comp_last_30_top_models as $m => $v) {
+        if ($this_pct_over_30_days > $v) {
+          $max_today_comp_last_30_top_models[$model->model_desc] = $this_pct_over_30_days;
+        }
+      }
+      asort($max_today_comp_last_30_top_models);
+    }
   }
+
+  $big_growth_last_30 = $big_growth_prev_30 = array();
+  $to = max(count($max_today_comp_prev_30_top_models), 3);
+  $i = 0;
+  foreach ($max_today_comp_prev_30_top_models as $model_desc => $pct_growth) {
+    $i++;
+    if ($i < 4) {
+      $big_growth_prev_30[] = $model_desc . " up by " . $pct_growth . "%";
+    }
+  }
+  
+  $to = max(count($max_today_comp_last_30_top_models), 3);
+  $i = 0;
+  foreach ($max_today_comp_last_30_top_models as $model_desc => $pct_growth) {
+    $i++;
+    if ($i < 4) {
+      $big_growth_last_30[] = $model_desc . " up by " . $pct_growth . "%";
+    }
+  }
+
+  $big_growth_last_30 = array_reverse($big_growth_last_30);
+  $big_growth_prev_30 = array_reverse($big_growth_prev_30);
+  
+  $general_summary = islandora_daily_stats_general_summary();
+  $overview_summary = array(
+      'name' => 'Overview',
+      'description' => 'This is an overview of the various content types that ' .
+        'were ingested over the last 30 days.</p>' .
+      '<p>The largest growth over the last 30 days has been: ' . implode(", ", $big_growth_last_30) . '</p>' .
+      '<p>The largest growth over the previous 30 day period: ' . implode(", ", $big_growth_prev_30) . ".",
+      'today' => $general_summary['today'],
+      'yesterday' => $general_summary['yesterday'],
+    );
+
+  $summary = theme('islandora_daily_stats_overview_summary', $overview_summary);
+
 
   foreach ($models_summary as $model_summary) {
     $summary .= theme('islandora_daily_stats_model_summary', $model_summary);
@@ -245,31 +294,20 @@ function islandora_daily_stats_get_stats_summary() {
 }
 
 /**
- *
+ * Gets the stats for a given model on various dates.
  *
  * @param type $model
  */
 function islandora_daily_stats_get_model_summary($model) {
-//    $models_summary[] = array(
-//      'name' => 'Book',
-//      'yesterday' => 0,
-//      'last_7_days' => 0,
-//      'last_7_change' => 0,
-//      'last_30_days' => 42,
-//      'last_30_change' => 1.5,
-//      'ytd' => 3420,
-//    );
-
   if (!is_object($model)) { return array(); }
-
-  $yesterday = date("Y/m/d", time() - 60 * 60 * 24);
+  $today = date("Y/m/d", time());
   $sql = "SELECT sm.pitt_count AS pitt_count " .
          "FROM islandora_stats_contentmodel_counts sm " .
          "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
-         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d = '" . $yesterday . "')";
+         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d = '" . $today . "')";
   $query = db_query($sql);
   $result = $query->fetchAll();
-  $yesterday_count = (isset($result[0]) ? $result[0]->pitt_count: 0);
+  $today_count = (isset($result[0]) ? $result[0]->pitt_count: 0);
 
   $ago_7_days = date("Y/m/d", time() - 7 * 60 * 60 * 24);
   $sql = "SELECT AVG(sm.pitt_count) AS pitt_count " .
@@ -309,10 +347,37 @@ function islandora_daily_stats_get_model_summary($model) {
 
   return array(
       'name' => $model->model_desc,
-      'yesterday' => $yesterday_count,
+      'today' => $today_count,
       'last_7_days' => $last_7_count,
       'prev_7_days' => $prev_7_days,
       'last_30_days' => $last_30_count,
       'prev_30_days' => $prev_30_days,
     );
+}
+
+/**
+ * Gets the stats for a given model on various dates.
+ *
+ * @param type $model
+ */
+function islandora_daily_stats_general_summary() {
+  $today = date("Y/m/d", time() - 60 * 60 * 24);
+  $sql = "SELECT SUM(sm.pitt_count) AS pitt_count " .
+         "FROM islandora_stats_contentmodel_counts sm " .
+         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
+         "WHERE (sm.date_d = '" . $today . "')";
+  $query = db_query($sql);
+  $result = $query->fetchAll();
+  $today_count = (isset($result[0]) ? $result[0]->pitt_count: 0);
+
+  $yesterday = date("Y/m/d", time() - 2 * 60 * 60 * 24);
+  $sql = "SELECT SUM(sm.pitt_count) AS pitt_count " .
+         "FROM islandora_stats_contentmodel_counts sm " .
+         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
+         "WHERE (sm.date_d = '" . $yesterday . "')";
+  $query = db_query($sql);
+  $result = $query->fetchAll();
+  $day_before_count = (isset($result[0]) ? $result[0]->pitt_count: 0);
+
+  return array('today' => $today_count, 'yesterday' => $today_count - $day_before_count);
 }
