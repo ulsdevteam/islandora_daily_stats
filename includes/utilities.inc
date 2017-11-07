@@ -345,7 +345,7 @@ function islandora_daily_stats_get_model_summary($model) {
  * @param type $model
  */
 function islandora_daily_stats_general_summary() {
-  $today = date("Y/m/d", time() - 60 * 60 * 24);
+  $today = date("Y/m/d", time());
   $sql = "SELECT SUM(sm.pitt_count) AS pitt_count " .
          "FROM islandora_stats_contentmodel_counts sm " .
          "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
@@ -354,7 +354,7 @@ function islandora_daily_stats_general_summary() {
   $result = $query->fetchAll();
   $today_count = (isset($result[0]) ? $result[0]->pitt_count: 0);
 
-  $yesterday = date("Y/m/d", time() - 2 * 60 * 60 * 24);
+  $yesterday = date("Y/m/d", time() - 60 * 60 * 24);
   $sql = "SELECT SUM(sm.pitt_count) AS pitt_count " .
          "FROM islandora_stats_contentmodel_counts sm " .
          "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
