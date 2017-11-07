@@ -220,53 +220,37 @@ function islandora_daily_stats_get_stats_summary() {
   $results = $query->execute()->fetchAll();
 
   $models_summary = array();
-  $max_today_comp_last_30_top_models = array();
-  $max_today_comp_prev_30_top_models = array();
+  $max_today_comp_last_30 = array();
+  $max_today_comp_prev_30 = array();
+  $cur_max_over_60_days = $cur_max_over_30_days = 0;
 
   foreach ($results as $model) {
     $model_stats = islandora_daily_stats_get_model_summary($model);
     $models_summary[] = $model_stats;
-    $this_pct_over_60_days = $model_stats['prev_30_days'] ? round(100 * ($model_stats['today'] - $model_stats['prev_30_days']) / $model_stats['prev_30_days'], 2) : 0;
-    $this_pct_over_30_days = $model_stats['last_30_days'] ? round(100 * ($model_stats['today'] - $model_stats['last_30_days']) / $model_stats['last_30_days'], 2) : 0;
-    if (count($max_today_comp_prev_30_top_models) < 1) {
-      $max_today_comp_prev_30_top_models[$model->model_desc] = $this_pct_over_60_days;
-    } else {
-      foreach ($max_today_comp_prev_30_top_models as $m => $v) {
-        if ($this_pct_over_60_days > $v) {
-          $max_today_comp_prev_30_top_models[$model->model_desc] = $this_pct_over_60_days;
-        }
-      }
-      asort($max_today_comp_prev_30_top_models);
-    }
-    if (count($max_today_comp_last_30_top_models) < 1) {
-      $max_today_comp_last_30_top_models[$model->model_desc] = $this_pct_over_30_days;
-    } else {
-      foreach ($max_today_comp_last_30_top_models as $m => $v) {
-        if ($this_pct_over_30_days > $v) {
-          $max_today_comp_last_30_top_models[$model->model_desc] = $this_pct_over_30_days;
-        }
-      }
-      asort($max_today_comp_last_30_top_models);
-    }
+    $this_pct_over_30_days = $model_stats['last_30_days'] ? 100 * ($model_stats['today'] - $model_stats['last_30_days']) / $model_stats['last_30_days'] : 0;
+    $this_pct_over_60_days = $model_stats['prev_30_days'] ? 100 * ($model_stats['today'] - $model_stats['prev_30_days']) / $model_stats['prev_30_days'] : 0;
+    $max_today_comp_last_30[$model->model_desc] = $this_pct_over_30_days;
+    $max_today_comp_prev_30[$model->model_desc] = $this_pct_over_60_days;
   }
-
+  asort($max_today_comp_last_30);
+  asort($max_today_comp_prev_30);
   $big_growth_last_30 = $big_growth_prev_30 = array();
-  $to = max(count($max_today_comp_prev_30_top_models), 3);
+
   $i = 0;
-  foreach ($max_today_comp_prev_30_top_models as $model_desc => $pct_growth) {
-    $i++;
-    if ($i < 4) {
-      $big_growth_prev_30[] = $model_desc . " up by " . $pct_growth . "%";
+  $start_at = count($max_today_comp_last_30) - 3;
+  foreach ($max_today_comp_last_30 as $model_desc => $v) {
+    if ($i >= $start_at) {
+      $big_growth_last_30[] = $model_desc . " up by " . round($v, 2) . "%";
     }
+    $i++;
   }
-  
-  $to = max(count($max_today_comp_last_30_top_models), 3);
   $i = 0;
-  foreach ($max_today_comp_last_30_top_models as $model_desc => $pct_growth) {
-    $i++;
-    if ($i < 4) {
-      $big_growth_last_30[] = $model_desc . " up by " . $pct_growth . "%";
+  $start_at = count($max_today_comp_prev_30) - 3;
+  foreach ($max_today_comp_prev_30 as $model_desc => $v) {
+    if ($i >= $start_at) {
+      $big_growth_prev_30[] = $model_desc . " up by " . round($v, 2) . "%";
     }
+    $i++;
   }
 
   $big_growth_last_30 = array_reverse($big_growth_last_30);
@@ -277,7 +261,7 @@ function islandora_daily_stats_get_stats_summary() {
       'name' => 'Overview',
       'description' => 'This is an overview of the various content types that ' .
         'were ingested over the last 30 days.</p>' .
-      '<p>The largest growth over the last 30 days has been: ' . implode(", ", $big_growth_last_30) . '</p>' .
+      '<p>The largest growth over the last 30 days has been: ' . implode(", ", $big_growth_last_30) . '.</p>' .
       '<p>The largest growth over the previous 30 day period: ' . implode(", ", $big_growth_prev_30) . ".",
       'today' => $general_summary['today'],
       'yesterday' => $general_summary['yesterday'],
