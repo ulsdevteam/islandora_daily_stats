@@ -27,12 +27,12 @@ function islandora_daily_stats_get_default_chart_colors() {
     'Teal' => '#008080',
     'Lavender' => '#e6beff',
     'Brown' => '#aa6e28',
-    'Beige' => '#fffac8',
+    'Navy' => '#000080',
     'Maroon' => '#800000',
     'Mint' => '#aaffc3',
     'Olive' => '#808000',
     'Coral' => '#ffd8b1',
-    'Navy' => '#000080',
+    'Beige' => '#fffac8',
     'Grey' => '#808080',
     'White' => '#FFFFFF',
     'Black' => '#000000',
@@ -55,7 +55,7 @@ function islandora_daily_stats_get_stats($filters) {
   $query = db_select('islandora_stats_contentmodel_counts', 'mc');
   if (count($filters) < 1) {
     // Add a filter for last 6 months...
-    $query->where('mc.date_d >= DATE_SUB(NOW(), INTERVAL 6 MONTH)');
+//    $query->where('mc.date_d >= DATE_SUB(NOW(), INTERVAL 6 MONTH)');
   }
   else {
     foreach ($filters as $filter_field => $filter_value) {
@@ -72,15 +72,17 @@ function islandora_daily_stats_get_stats($filters) {
   $query->addField('mc', 'date_d');
   $query->addField('m', 'model_desc');
   $query->addField('mc', 'pitt_count');
-  $query->addField('mc', 'nonpitt_count');
+//  $query->addField('mc', 'nonpitt_count');
   $query->orderBy('mc.date_d', 'ASC');
-  $query->range(0, 900);
+  $query->where('mc.date_d >= DATE_SUB(NOW(), INTERVAL 6 MONTH)');
+//  $query->range(0, 10);
   $results = $query->execute()->fetchAll();
   $rows = array();
   $max_y = 0;
   $max_x = 0;
   $model_colors = array();
   $models = array();
+  $min_date = 0;
   foreach ($results as $result_obj) {
     if ($result_obj->pitt_count > $max_y) {
       $max_y = $result_obj->pitt_count;
@@ -92,14 +94,21 @@ function islandora_daily_stats_get_stats($filters) {
       $color_key = array_shift($pop_these_colors);
       $models[$result_obj->model_desc] = $color_key;
     }
+    if (!$min_date) {
+      $min_date = strtotime($result_obj->date_d);
+    }
     $rows[] = array(
       'date' => date('m/d/Y', strtotime($result_obj->date_d)),
       'model' => $result_obj->model_desc,
       'pitt_count' => $result_obj->pitt_count,
-      'nonpitt_count' => $result_obj->nonpitt_count,
+      // 'nonpitt_count' => 0, // $result_obj->nonpitt_count,
     );
     $max_x++;
   }
+
+  $max_date = strtotime($result_obj->date_d);
+  $days_spanned = ($max_date - $min_date) / 60 / 60 / 24;
+  $pixels_per_month_span = 30 * 904 / $days_spanned;
 
   // The json array must be normalized to fit in the chart canvas which is
   // 900 x 400 pixels;
@@ -125,6 +134,7 @@ function islandora_daily_stats_get_stats($filters) {
   $line_array_models = $line_array = array();
   // need to make an array of line_data
   foreach ($rows as $idx => $row_array) {
+    /*
     if ($idx > 0) {
       // Will use the x and y from previous calculation iteration.
       $line_array_models[$row_array['model']]['source'] = array('x' => $x, 'y' => $y);
@@ -135,26 +145,28 @@ function islandora_daily_stats_get_stats($filters) {
     $x = 904 - round(900 * $idx / $max_x, 0);
     $y = 404 - round(400 * $row_array['pitt_count'] / $max_y, 0);
     $line_array_models[$row_array['model']]['target'] = array('x' => $x, 'y' => $y);
+    */
     $rows[$idx]['pitt_count'] = array('data' => number_format($rows[$idx]['pitt_count']), 'class'=>'cell_numeric');
-    $rows[$idx]['nonpitt_count'] = array('data' => number_format($rows[$idx]['nonpitt_count']), 'class'=>'cell_numeric');
+    // $rows[$idx]['nonpitt_count'] = array('data' => number_format($rows[$idx]['nonpitt_count']), 'class'=>'cell_numeric');
   }
 
-  $headers = array('Date', 'Model', 'Pitt Count', 'Non-Pitt Count');
+  $headers = array('Date', 'Model', 'Pitt Count'); // , 'Non-Pitt Count');
   $stats_table = theme('table', array('header' => $headers, 'rows' => $rows));
 
-  foreach ($line_array_models as $model => $line_array_model) {
+/*  foreach ($line_array_models as $model => $line_array_model) {
     $line_array = array_merge($line_array, $line_array_models[$model]);
   }
+ */
   $node_data = json_encode($node_array);
   $line_data = json_encode($line_array);
 
   return array(
     'stats_table' => $stats_table,
     'node_data' => $node_data,
+    'pixels_per_month_span' => $pixels_per_month_span,
     'line_data' => $line_data,
     'color_key_models' => $models,
   );
-
 }
 
 /**
@@ -183,7 +195,10 @@ function islandora_daily_stats_make_filter_links($filters) {
     $selected_models_arr = explode(",", $filters['model']);
   }
 
-  $grouped_links = $filter_links = array();
+  $top_report_links = $grouped_links = $filter_links = array();
+
+  $top_report_links[] = l('Islandora Daily Stats Summary', 'admin/reports/islandora/dailystats/summary');
+  $top_report_links[] = l('Islandora Daily Stats', 'admin/reports/islandora/dailystats/stats/allmodels');
 
   $grouped_links[] = l('ALL MODELS', 'admin/reports/islandora/dailystats/stats/allmodels');
   $grouped_links[] = l('All Pages', 'admin/reports/islandora/dailystats/stats/pageCModel,manuscriptPageCModel,newspaperPageCModel');
@@ -193,12 +208,11 @@ function islandora_daily_stats_make_filter_links($filters) {
         '<span class="active">' . $result_obj->model_desc . '</span>' :
         l($result_obj->model_desc, 'admin/reports/islandora/dailystats/stats/' . $result_obj->model);
   }
-  return implode(" | ", $grouped_links) . "<br>" . implode(" | ", $filter_links);
+  return implode(" | ", $top_report_links) . "<br>" .
+        implode(" | ", $grouped_links) . "<br>" . implode(" | ", $filter_links);
 }
 
 function islandora_daily_stats_get_stats_summary() {
-  $models_summary = array();
-
   $overview_summary = array(
       'name' => 'Overview',
       'description' => 'This is an overview of the various content types that ' .
@@ -208,31 +222,97 @@ function islandora_daily_stats_get_stats_summary() {
       'last_7_days' => 4128,
       'last_7_change' => 2.1,
       'last_30_days' => 33453,
-      'last_30_change' => 1.4,
-      'ytd' => 1418976,
+      'last_30_days_change' => 1.4,
     );
-  $summary = theme('islandora_daily_stats_overview_summary', $overview_summary);;
+  $summary = theme('islandora_daily_stats_overview_summary', $overview_summary);
 
-  $models_summary[] = array(
-      'name' => 'Book',
-      'today' => 0,
-      'last_7_days' => 0,
-      'last_7_change' => 0,
-      'last_30_days' => 42,
-      'last_30_change' => 1.5,
-      'ytd' => 3420,
-    );
-  $models_summary[] = array(
-      'name' => 'Book Pages',
-      'today' => 0,
-      'last_7_days' => 0,
-      'last_7_change' => 0,
-      'last_30_days' => 1742,
-      'last_30_change' => 1.256,
-      'ytd' => 1091876,
-    );
+  $query = db_select('islandora_stats_models', 'm');
+  $query->addField('m', 'model');
+  $query->addField('m', 'model_desc');
+  $query->orderBy('model_desc');
+  $results = $query->execute()->fetchAll();
+
+  $models_summary = array();
+  foreach ($results as $model) {
+    $models_summary[] = islandora_daily_stats_get_model_summary($model);
+  }
+
   foreach ($models_summary as $model_summary) {
     $summary .= theme('islandora_daily_stats_model_summary', $model_summary);
   }
+
   return $summary;
+}
+
+/**
+ *
+ *
+ * @param type $model
+ */
+function islandora_daily_stats_get_model_summary($model) {
+//    $models_summary[] = array(
+//      'name' => 'Book',
+//      'yesterday' => 0,
+//      'last_7_days' => 0,
+//      'last_7_change' => 0,
+//      'last_30_days' => 42,
+//      'last_30_change' => 1.5,
+//      'ytd' => 3420,
+//    );
+
+  if (!is_object($model)) { return array(); }
+
+  $yesterday = date("Y/m/d", time() - 60 * 60 * 24);
+  $sql = "SELECT sm.pitt_count AS pitt_count " .
+         "FROM islandora_stats_contentmodel_counts sm " .
+         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
+         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d = '" . $yesterday . "')";
+  $query = db_query($sql);
+  $result = $query->fetchAll();
+  $yesterday_count = (isset($result[0]) ? $result[0]->pitt_count: 0);
+
+  $ago_7_days = date("Y/m/d", time() - 7 * 60 * 60 * 24);
+  $sql = "SELECT AVG(sm.pitt_count) AS pitt_count " .
+         "FROM islandora_stats_contentmodel_counts sm " .
+         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
+         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d >= '" . $ago_7_days . "')";
+  $query = db_query($sql);
+  $result = $query->fetchAll();
+  $last_7_count = (isset($result[0]) ? $result[0]->pitt_count: 0);
+
+  $ago_14_days = date("Y/m/d", time() - 14 * 60 * 60 * 24);
+  $sql = "SELECT AVG(sm.pitt_count) AS pitt_count " .
+         "FROM islandora_stats_contentmodel_counts sm " .
+         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
+         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d >= '" . $ago_14_days . "' AND sm.date_d < '" . $ago_7_days . "')";
+  $query = db_query($sql);
+  $result = $query->fetchAll();
+  $prev_7_days = (isset($result[0]) ? $result[0]->pitt_count: 0);
+
+  $ago_30_days = date("Y/m/d", time() - 30 * 60 * 60 * 24);
+  $sql = "SELECT AVG(sm.pitt_count) AS pitt_count " .
+         "FROM islandora_stats_contentmodel_counts sm " .
+         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
+         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d >= '" . $ago_30_days . "')";
+  $query = db_query($sql);
+  $result = $query->fetchAll();
+  $last_30_count = (isset($result[0]) ? $result[0]->pitt_count: 0);
+
+  $ago_60_days = date("Y/m/d", time() - 60 * 60 * 60 * 24);
+  $sql = "SELECT AVG(sm.pitt_count) AS pitt_count " .
+         "FROM islandora_stats_contentmodel_counts sm " .
+         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
+         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d >= '" . $ago_60_days . "' AND sm.date_d < '" . $ago_30_days . "')";
+  $query = db_query($sql);
+  $result = $query->fetchAll();
+  $prev_30_days = (isset($result[0]) ? $result[0]->pitt_count: 0);
+
+  return array(
+      'name' => $model->model_desc,
+      'yesterday' => $yesterday_count,
+      'last_7_days' => $last_7_count,
+      'prev_7_days' => $prev_7_days,
+      'last_30_days' => $last_30_count,
+      'prev_30_days' => $prev_30_days,
+    );
 }

@@ -34,6 +34,7 @@ function islandora_daily_stats_page($models, $date_start = '', $date_end = '') {
       'stats_table' => $result['stats_table'],
       'node_data' => $result['node_data'],
       'line_data' => $result['line_data'],
+      'pixels_per_month_span' => $result['pixels_per_month_span'],
       'color_key' => theme('islandora_daily_stats_color_key', array('model_colors' => $models_colors)),
   ));
 }

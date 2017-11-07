@@ -14,6 +14,20 @@
         .attr("height", h)
         .attr("id", 'svg');
 
+  var month_pixels = <?php print round($pixels_per_month_span); ?>;
+  var cur_line_left = 904 - month_pixels;
+
+  while (cur_line_left >= 0) {
+    vis.append("line")          // attach a line
+    .style("stroke", "#999")
+     .attr("x1", function(d) { return cur_line_left })
+     .attr("y1", function(d) { return 0 })
+     .attr("x2", function(d) { return cur_line_left })
+     .attr("y2", function(d) { return 404 });
+
+    cur_line_left = cur_line_left - month_pixels;
+  }
+
   var nodes = <?php print $node_data; ?>;
             
   vis.selectAll("circle .nodes")
@@ -26,18 +40,6 @@
      .attr("cy", function(d) { return d.y; })
      .attr("r", function(d) { return d.r + "px"; })
      .attr("fill", function(d) { return d.color; });
-
-  var links = <?php print $line_data; ?>
-
-  vis.selectAll(".line")
-     .data(links)
-     .enter()
-     .append("line")
-     .attr("x1", function(d) { return d.source.x })
-     .attr("y1", function(d) { return d.source.y })
-     .attr("x2", function(d) { return d.target.x })
-     .attr("y2", function(d) { return d.target.y })
-     .style("stroke", "rgb(6,120,155)");
 
   jQuery("#graph svg").mousemove(function(e){handleMouseMove(e);});
 
