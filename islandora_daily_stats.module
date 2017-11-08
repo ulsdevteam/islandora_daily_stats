@@ -136,11 +136,12 @@ function islandora_daily_stats_theme() {
       'template' => 'theme/islandora-daily-stats-model-summary',
       'variables' => array(
         'name' => '',
-        'today' => 0,
-        'last_7_days' => 0,
-        'prev_7_days' => 0,
-        'last_30_days' => 0,
-        'prev_30_days' => 0,
+        'total_today' => 0,
+        'new_today' => 0,
+        'new_in_last_week' => 0,
+        'new_in_two_weeks' => 0,
+        'new_in_last_month' => 0,
+        'new_in_two_months' => 0,
       ),
     ),
   );

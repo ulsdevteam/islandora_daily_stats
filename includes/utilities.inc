@@ -125,7 +125,7 @@ function islandora_daily_stats_get_stats($filters) {
       $date_ticks++;
       $last_date = $row_array['date'];
     }
-    $r = (($date_ticks % 5) == 0) ? ((($date_ticks % 10) == 0) ? 5 : 3) : 3;
+    $r = (($date_ticks % 5) == 0) ? ((($date_ticks % 10) == 0) ? 2 : 2) : 2;
     $node_array[] = array('x' => $x, 'y' => $y, 
         'title' => number_format($row_array['pitt_count']) . " " . $row_array['model'] . " objects (" . $row_array['date'] . ")",
         'r' => $r, 'color' => $models[$row_array['model']]);
@@ -227,8 +227,8 @@ function islandora_daily_stats_get_stats_summary() {
   foreach ($results as $model) {
     $model_stats = islandora_daily_stats_get_model_summary($model);
     $models_summary[] = $model_stats;
-    $this_pct_over_30_days = $model_stats['last_30_days'] ? 100 * ($model_stats['today'] - $model_stats['last_30_days']) / $model_stats['last_30_days'] : 0;
-    $this_pct_over_60_days = $model_stats['prev_30_days'] ? 100 * ($model_stats['today'] - $model_stats['prev_30_days']) / $model_stats['prev_30_days'] : 0;
+    $this_pct_over_30_days = ($model_stats['last_30_days'] <> 0) ? 100 * ($model_stats['total_today'] - $model_stats['last_30_days']) / $model_stats['last_30_days'] : 0;
+    $this_pct_over_60_days = ($model_stats['prev_30_days'] <> 0) ? 100 * ($model_stats['total_today'] - $model_stats['prev_30_days']) / $model_stats['prev_30_days'] : 0;
     $max_today_comp_last_30[$model->model_desc] = $this_pct_over_30_days;
     $max_today_comp_prev_30[$model->model_desc] = $this_pct_over_60_days;
   }
@@ -277,6 +277,26 @@ function islandora_daily_stats_get_stats_summary() {
   return $summary;
 }
 
+function islandora_daily_stats_get_last_date($model, $offset = '') {
+  $sql = "SELECT " . (($offset) ? 'DATE_SUB(sm.date_d, INTERVAL ' . $offset . ' DAY)' : 'sm.date_d') . " as `date_d` " .
+         "FROM islandora_stats_contentmodel_counts sm " .
+         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
+         "WHERE (m.model = '" . $model->model . "') ORDER BY sm.date_d DESC LIMIT 1";
+  $query = db_query($sql);
+  $result = $query->fetchAll();
+  return (isset($result[0]) ? $result[0]->date_d : 0);
+}
+
+function islandora_daily_stats_get_count_on_date($model, $date) {
+  $sql = "SELECT sm.pitt_count AS pitt_count " .
+         "FROM islandora_stats_contentmodel_counts sm " .
+         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
+         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d = '" . $date . "')";
+  $query = db_query($sql);
+  $result = $query->fetchAll();
+  return (isset($result[0]) ? $result[0]->pitt_count: 0);
+}
+
 /**
  * Gets the stats for a given model on various dates.
  *
@@ -284,56 +304,33 @@ function islandora_daily_stats_get_stats_summary() {
  */
 function islandora_daily_stats_get_model_summary($model) {
   if (!is_object($model)) { return array(); }
-  $today = date("Y/m/d", time());
-  $sql = "SELECT sm.pitt_count AS pitt_count " .
-         "FROM islandora_stats_contentmodel_counts sm " .
-         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
-         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d = '" . $today . "')";
-  $query = db_query($sql);
-  $result = $query->fetchAll();
-  $today_count = (isset($result[0]) ? $result[0]->pitt_count: 0);
+  $today = islandora_daily_stats_get_last_date($model);
+  $yesterday = islandora_daily_stats_get_last_date($model, 1);
+  $ago_7_days = islandora_daily_stats_get_last_date($model, 7);
+  $ago_14_days = islandora_daily_stats_get_last_date($model, 14);
+  $ago_30_days = islandora_daily_stats_get_last_date($model, 30);
+  $ago_60_days = islandora_daily_stats_get_last_date($model, 60);
 
-  $ago_7_days = date("Y/m/d", time() - 7 * 60 * 60 * 24);
-  $sql = "SELECT AVG(sm.pitt_count) AS pitt_count " .
-         "FROM islandora_stats_contentmodel_counts sm " .
-         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
-         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d >= '" . $ago_7_days . "')";
-  $query = db_query($sql);
-  $result = $query->fetchAll();
-  $last_7_count = (isset($result[0]) ? $result[0]->pitt_count: 0);
-
-  $ago_14_days = date("Y/m/d", time() - 14 * 60 * 60 * 24);
-  $sql = "SELECT AVG(sm.pitt_count) AS pitt_count " .
-         "FROM islandora_stats_contentmodel_counts sm " .
-         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
-         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d >= '" . $ago_14_days . "' AND sm.date_d < '" . $ago_7_days . "')";
-  $query = db_query($sql);
-  $result = $query->fetchAll();
-  $prev_7_days = (isset($result[0]) ? $result[0]->pitt_count: 0);
-
-  $ago_30_days = date("Y/m/d", time() - 30 * 60 * 60 * 24);
-  $sql = "SELECT AVG(sm.pitt_count) AS pitt_count " .
-         "FROM islandora_stats_contentmodel_counts sm " .
-         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
-         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d >= '" . $ago_30_days . "')";
-  $query = db_query($sql);
-  $result = $query->fetchAll();
-  $last_30_count = (isset($result[0]) ? $result[0]->pitt_count: 0);
-
-  $ago_60_days = date("Y/m/d", time() - 60 * 60 * 60 * 24);
-  $sql = "SELECT AVG(sm.pitt_count) AS pitt_count " .
-         "FROM islandora_stats_contentmodel_counts sm " .
-         "LEFT OUTER JOIN islandora_stats_models m ON m.model_id = sm.model_id " .
-         "WHERE (m.model = '" . $model->model . "') AND (sm.date_d >= '" . $ago_60_days . "' AND sm.date_d < '" . $ago_30_days . "')";
-  $query = db_query($sql);
-  $result = $query->fetchAll();
-  $prev_30_days = (isset($result[0]) ? $result[0]->pitt_count: 0);
+  $today_count = islandora_daily_stats_get_count_on_date($model, $today);
+  $yesterday_count = islandora_daily_stats_get_count_on_date($model, $yesterday);
+  $new_today = $today_count - $yesterday_count;
+  $last_7_count = islandora_daily_stats_get_count_on_date($model, $ago_7_days);
+  $prev_7_days = islandora_daily_stats_get_count_on_date($model, $ago_14_days);
+  $new_in_last_week = $today_count - $last_7_count;
+  $new_in_two_weeks = $today_count - $prev_7_days;
+  $last_30_count = islandora_daily_stats_get_count_on_date($model, $ago_30_days);
+  $prev_30_days = islandora_daily_stats_get_count_on_date($model, $ago_60_days);
+  $new_in_last_month = $today_count - $last_30_count;
+  $new_in_two_months = $today_count - $prev_30_days;
 
   return array(
       'name' => $model->model_desc,
-      'today' => $today_count,
-      'last_7_days' => $last_7_count,
-      'prev_7_days' => $prev_7_days,
+      'total_today' => $today_count,
+      'new_today' => $new_today,
+      'new_in_last_week' => $new_in_last_week,
+      'new_in_two_weeks' => $new_in_two_weeks,
+      'new_in_last_month' => $new_in_last_month,
+      'new_in_two_months' => $new_in_two_months,
       'last_30_days' => $last_30_count,
       'prev_30_days' => $prev_30_days,
     );

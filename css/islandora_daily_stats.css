@@ -78,3 +78,9 @@
   width: 30%;
   float: left;
 }
+
+.today_value {
+  font-size: large;
+  color: #599;
+}
+
