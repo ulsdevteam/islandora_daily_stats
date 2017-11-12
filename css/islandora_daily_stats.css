@@ -67,8 +67,9 @@
 }
 
 .overview_summary {
-  width: 70%;
+  width: 65%;
   margin-top: 22px;
+  margin-left: 60px;
 }
 
 .model_summary {
