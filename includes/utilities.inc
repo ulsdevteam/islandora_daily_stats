@@ -6,40 +6,6 @@
  */
 
 /**
- * This returns an array of simple and distinct color values that should be 
- * easy to distinguish between for any chart.
- * 
- * @return array
- *   Array with the key being the color string and value is hex value.
- */
-function islandora_daily_stats_get_default_chart_colors() {
-  return array(
-    'Red' => '#e6194b',
-    'Green' => '#3cb44b',
-    'Yellow' => '#ffe119',
-    'Blue' => '#0082c8',
-    'Orange' => '#f58231',
-    'Purple' => '#911eb4',
-    'Cyan' => '#46f0f0',
-    'Magenta' => '#f032e6',
-    'Lime' => '#d2f53c',
-    'Pink' => '#fabebe',
-    'Teal' => '#008080',
-    'Lavender' => '#e6beff',
-    'Brown' => '#aa6e28',
-    'Navy' => '#000080',
-    'Maroon' => '#800000',
-    'Mint' => '#aaffc3',
-    'Olive' => '#808000',
-    'Coral' => '#ffd8b1',
-    'Beige' => '#fffac8',
-    'Grey' => '#808080',
-    'White' => '#FFFFFF',
-    'Black' => '#000000',
-  );
-}
-
-/**
  * Create the stats  based on filters.
  *
  * @param array $filters
@@ -50,12 +16,10 @@ function islandora_daily_stats_get_default_chart_colors() {
  *   'json_data': json encoded values
  */
 function islandora_daily_stats_get_stats($filters) {
-  $chart_colors = islandora_daily_stats_get_default_chart_colors();
-  $pop_these_colors = $chart_colors;
   $query = db_select('islandora_stats_contentmodel_counts', 'mc');
   if (count($filters) < 1) {
     // Add a filter for last 6 months...
-//    $query->where('mc.date_d >= DATE_SUB(NOW(), INTERVAL 6 MONTH)');
+    //    $query->where('mc.date_d >= DATE_SUB(NOW(), INTERVAL 6 MONTH)');
   }
   else {
     foreach ($filters as $filter_field => $filter_value) {
@@ -72,27 +36,22 @@ function islandora_daily_stats_get_stats($filters) {
   $query->addField('mc', 'date_d');
   $query->addField('m', 'model_desc');
   $query->addField('mc', 'pitt_count');
-//  $query->addField('mc', 'nonpitt_count');
   $query->orderBy('mc.date_d', 'ASC');
+  //  $query->where('WEEKDAY(mc.date_d) = 1');
   $query->where('mc.date_d >= DATE_SUB(NOW(), INTERVAL 6 MONTH)');
-//  $query->range(0, 10);
   $results = $query->execute()->fetchAll();
+
   $rows = array();
   $max_y = 0;
   $max_x = 0;
-  $model_colors = array();
-  $models = array();
+  $dates = $models = $values = array();
   $min_date = 0;
   foreach ($results as $result_obj) {
     if ($result_obj->pitt_count > $max_y) {
       $max_y = $result_obj->pitt_count;
     }
     if (!array_key_exists($result_obj->model_desc, $models)) {
-      if (count($pop_these_colors) < 1) {
-        $pop_these_colors = $chart_colors;
-      }
-      $color_key = array_shift($pop_these_colors);
-      $models[$result_obj->model_desc] = $color_key;
+      $models[$result_obj->model_desc] = $model_desc;
     }
     if (!$min_date) {
       $min_date = strtotime($result_obj->date_d);
@@ -103,49 +62,16 @@ function islandora_daily_stats_get_stats($filters) {
       'pitt_count' => $result_obj->pitt_count,
       // 'nonpitt_count' => 0, // $result_obj->nonpitt_count,
     );
+    $date = date('m/d/Y', strtotime($result_obj->date_d));
+    $dates[$date] = $date;
+    $values[$result_obj->model_desc][$date] = $result_obj->pitt_count;
     $max_x++;
   }
 
-  $max_date = strtotime($result_obj->date_d);
-  $days_spanned = ($max_date - $min_date) / 60 / 60 / 24;
-  $pixels_per_month_span = 30 * 904 / $days_spanned;
+  $model_keys = array_keys($models);
 
-  // The json array must be normalized to fit in the chart canvas which is
-  // 900 x 400 pixels;
-  $node_array = array();
-  $model_to_color_index = array();
-
-  $last_date = '';
-  $date_ticks = 0;
-  foreach ($rows as $idx => $row_array) {
-    $x = round(900 * $idx / $max_x, 0);
-    $y = 404 - round(400 * $row_array['pitt_count'] / $max_y, 0);
-    $class = 'nodes';
-    if ($last_date <> $row_array['date']) {
-      $date_ticks++;
-      $last_date = $row_array['date'];
-    }
-    $r = (($date_ticks % 5) == 0) ? ((($date_ticks % 10) == 0) ? 2 : 2) : 2;
-    $node_array[] = array('x' => $x, 'y' => $y, 
-        'title' => number_format($row_array['pitt_count']) . " " . $row_array['model'] . " objects (" . $row_array['date'] . ")",
-        'r' => $r, 'color' => $models[$row_array['model']]);
-  }
-
-  $line_array_models = $line_array = array();
   // need to make an array of line_data
   foreach ($rows as $idx => $row_array) {
-    /*
-    if ($idx > 0) {
-      // Will use the x and y from previous calculation iteration.
-      $line_array_models[$row_array['model']]['source'] = array('x' => $x, 'y' => $y);
-    }
-    else {
-      $line_array_models[$row_array['model']]['source'] = array('x' => 0, 'y' => 0);
-    }
-    $x = 904 - round(900 * $idx / $max_x, 0);
-    $y = 404 - round(400 * $row_array['pitt_count'] / $max_y, 0);
-    $line_array_models[$row_array['model']]['target'] = array('x' => $x, 'y' => $y);
-    */
     $rows[$idx]['pitt_count'] = array('data' => number_format($rows[$idx]['pitt_count']), 'class'=>'cell_numeric');
     // $rows[$idx]['nonpitt_count'] = array('data' => number_format($rows[$idx]['nonpitt_count']), 'class'=>'cell_numeric');
   }
@@ -153,19 +79,12 @@ function islandora_daily_stats_get_stats($filters) {
   $headers = array('Date', 'Model', 'Pitt Count'); // , 'Non-Pitt Count');
   $stats_table = theme('table', array('header' => $headers, 'rows' => $rows));
 
-/*  foreach ($line_array_models as $model => $line_array_model) {
-    $line_array = array_merge($line_array, $line_array_models[$model]);
-  }
- */
-  $node_data = json_encode($node_array);
-  $line_data = json_encode($line_array);
 
   return array(
     'stats_table' => $stats_table,
-    'node_data' => $node_data,
-    'pixels_per_month_span' => $pixels_per_month_span,
-    'line_data' => $line_data,
-    'color_key_models' => $models,
+    'models' => $model_keys,
+    'values' => $values,
+    'dates' => $dates,
   );
 }
 
@@ -267,14 +186,30 @@ function islandora_daily_stats_get_stats_summary() {
       'yesterday' => $general_summary['yesterday'],
     );
 
-  $summary = theme('islandora_daily_stats_overview_summary', $overview_summary);
+  $summary = theme('islandora_daily_stats_overview_summary', $overview_summary) . 
+       islandora_daily_stats_js_summary_block($models_summary);
 
-
+  
   foreach ($models_summary as $model_summary) {
     $summary .= theme('islandora_daily_stats_model_summary', $model_summary);
   }
 
   return $summary;
+}
+
+function islandora_daily_stats_js_summary_block($models_summary) {  
+  $values = array();
+  // loop through $models_summary and use  'name' and 'total_today' values.
+  foreach ($models_summary as $model_summary) {
+    if (isset($model_summary['name']) && isset($model_summary['total_today']) && $model_summary['total_today'] > 0) {
+      $values[] = array(
+          'name' => $model_summary['name'],
+          'total_today' => $model_summary['total_today'],
+      );
+    }
+  }
+  $js = theme('islandora_daily_stats_summary_chart_js', array('values' => $values));
+  return $js;
 }
 
 function islandora_daily_stats_get_last_date($model, $offset = '') {

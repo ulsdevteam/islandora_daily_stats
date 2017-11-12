@@ -84,14 +84,10 @@ function islandora_daily_stats_preprocess_page(&$vars) {
     if ($item['path'] == 'admin/reports/islandora/dailystats/stats/%' ||
         $item['path'] == 'admin/reports/islandora/dailystats/summary' ||
         $item['path'] == 'admin/reports/islandora/dailystats/stats/allmodels') {
+      drupal_add_js('https://www.gstatic.com/charts/loader.js');
       $module_path = drupal_get_path('module', 'islandora_daily_stats');
       drupal_add_css($module_path . '/css/islandora_daily_stats.css');
       $vars['sidebar'] = array();
-    }
-    if ($item['path'] == 'admin/reports/islandora/dailystats/stats/%' ||
-      $item['path'] == 'admin/reports/islandora/dailystats/stats/allmodels' ||
-      $item['path'] == 'admin/reports/islandora/dailystats/stats/%/%/%') {
-      drupal_add_js('sites/all/libraries/d3/d3.js');
     }
   }
 }
@@ -105,15 +101,10 @@ function islandora_daily_stats_theme() {
       'template' => 'theme/islandora-daily-stats-page',
       'variables' => array(
         'filter_links' => '',
+        'models' => '',
+        'values' => '',
+        'dates' => '',
         'stats_table' => '',
-        'node_data' => '',
-        'color_key' => '',
-      ),
-    ),
-    'islandora_daily_stats_color_key' => array(
-      'template' => 'theme/islandora-daily-stats-color-key',
-      'variables' => array(
-        'model_colors' => '',
       ),
     ),
     'islandora_daily_stats_summary_page' => array(
@@ -121,6 +112,12 @@ function islandora_daily_stats_theme() {
       'variables' => array(
         'filter_links' => '',
         'summary' => '',
+      ),
+    ),
+    'islandora_daily_stats_summary_chart_js' => array(
+      'template' => 'theme/islandora-daily-stats-summary-chart-js',
+      'variables' => array(
+        'values' => '',
       ),
     ),
     'islandora_daily_stats_overview_summary' => array(

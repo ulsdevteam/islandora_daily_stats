@@ -12,6 +12,12 @@
   margin: auto auto;
 }
 
+#chart_summary_div {
+  width: 26%;
+  float: left;
+  margin-right: 20px;
+}
+
 #color_key {
   font-size: smaller;
   padding: 12px;
@@ -57,22 +63,23 @@
   border-radius: 6px;
   margin: 5px;
   padding: 8px;
+  float: left;
 }
 
 .overview_summary {
-  width: 97%;
+  width: 70%;
+  margin-top: 22px;
 }
 
 .model_summary {
   width: 31%;
-  float: left;
 }
 
 .overview_summary h3, .model_summary h3 {
   margin-top: 0;
 }
 
-.model_summary br {
+.overview_summary br, .model_summary br {
   clear: both;
 }
 
