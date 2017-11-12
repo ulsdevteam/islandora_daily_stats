@@ -56,7 +56,11 @@
   background-color: #f7f7f7;
   border-radius: 6px;
   margin: 5px;
-  padding: 5px;
+  padding: 8px;
+}
+
+.overview_summary {
+  width: 97%;
 }
 
 .model_summary {
@@ -68,14 +72,25 @@
   margin-top: 0;
 }
 
+.model_summary br {
+  clear: both;
+}
+
 .value {
   float: left;
   width: 13%;
   padding-right: 10px;
 }
 
+.sub_value {
+  float: right;
+  width: 13%;
+  font-size: smaller;
+  color: #666;
+}
+
 .overview_summary label, .model_summary label {
-  width: 30%;
+  width: 68%;
   float: left;
 }
 

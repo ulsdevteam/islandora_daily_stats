@@ -142,6 +142,13 @@ function islandora_daily_stats_theme() {
         'new_in_two_weeks' => 0,
         'new_in_last_month' => 0,
         'new_in_two_months' => 0,
+        'prev_30_days' => 0,
+        'yesterday_count' => 0,
+        'last_7_count' => 0,
+        'prev_7_days' => 0,
+        'last_30_count' => 0,
+        'last_30_days' => 0,
+        'prev_30_days' => 0,
       ),
     ),
   );
