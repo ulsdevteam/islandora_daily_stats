@@ -51,7 +51,7 @@ function islandora_daily_stats_get_stats($filters) {
       $max_y = $result_obj->pitt_count;
     }
     if (!array_key_exists($result_obj->model_desc, $models)) {
-      $models[$result_obj->model_desc] = $model_desc;
+      $models[$result_obj->model_desc] = $result_obj->model_desc;
     }
     if (!$min_date) {
       $min_date = strtotime($result_obj->date_d);

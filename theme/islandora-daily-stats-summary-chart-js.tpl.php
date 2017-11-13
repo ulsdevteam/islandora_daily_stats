@@ -14,8 +14,8 @@
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'Model');
         data.addColumn('number', 'Objects');
+  <?php $last_value_name = (is_array($values) && count($values) > 0) ? $values[count($values)-1]['name'] : ''; ?>
         data.addRows([
-  <?php $last_value_name = (is_array($values) && count($values) > 0) ? $values[count($values)]['name'] : ''; ?>
   <?php foreach ($values as $value): ?>
           ['<?php print $value['name'] . "', " . $value['total_today']; ?>
            <?php print ($value['name'] == $last_value_name) ? ']' : '],'; ?>
