@@ -35,7 +35,7 @@
         },
         axes: {
           x: {
-            0: {side: 'top'}
+            0: {side: 'bottom'}
           }
         }
       };
