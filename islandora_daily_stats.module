@@ -129,6 +129,12 @@ function islandora_daily_stats_theme() {
         'yesterday' => 0,
       ),
     ),
+    'islandora_daily_stats_page_averages_summary' => array(
+      'template' => 'theme/islandora-daily-stats-page_averages-summary',
+      'variables' => array(
+        'paged_models' => '',
+      ),
+    ),
     'islandora_daily_stats_model_summary' => array(
       'template' => 'theme/islandora-daily-stats-model-summary',
       'variables' => array(

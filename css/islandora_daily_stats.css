@@ -57,6 +57,10 @@
   font-family: Andale Mono, monospace;
 }
 
+.larger {
+  font-size: larger;
+}
+
 .overview_summary, .model_summary {
   border: 1px solid #888;
   background-color: #f7f7f7;

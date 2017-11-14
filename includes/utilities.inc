@@ -174,6 +174,29 @@ function islandora_daily_stats_get_stats_summary() {
 
   $big_growth_last_30 = array_reverse($big_growth_last_30);
   $big_growth_prev_30 = array_reverse($big_growth_prev_30);
+
+  $paged_model_ratios = array();
+  $paged_models = array(
+      'Book' => 'BookPage',
+      'Manuscript' => 'ManuscriptPage',
+      'NewspaperIssue' => 'NewspaperPage');
+
+  $m = array();
+  foreach ($models_summary as $model_summary) {
+    $m[$model_summary['name']] = $model_summary;
+  }
+  foreach ($paged_models as $model_name => $page_model_name) {
+    if (array_key_exists($model_name, $m) && array_key_exists($page_model_name, $m)) {
+      $paged_model_ratios[$model_name] = array(
+         'ratio_today' => round($m[$page_model_name]['total_today'] / $m[$model_name]['total_today'], 1),
+         'ratio_last_30_days' => round($m[$page_model_name]['last_30_days'] / $m[$model_name]['last_30_days'], 1),
+         'ratio_prev_30_days' => round($m[$page_model_name]['prev_30_days'] / $m[$model_name]['prev_30_days'], 1)
+      );
+    }
+
+  }
+
+  $page_averages = theme('islandora_daily_stats_page_averages_summary', array('paged_models' => $paged_model_ratios));
   
   $general_summary = islandora_daily_stats_general_summary();
   $overview_summary = array(
@@ -184,15 +207,21 @@ function islandora_daily_stats_get_stats_summary() {
       '<p>The largest growth over the previous 30 day period: ' . implode(", ", $big_growth_prev_30) . ".",
       'today' => $general_summary['today'],
       'yesterday' => $general_summary['yesterday'],
+      'page_averages' => $page_averages,
     );
 
   $summary = theme('islandora_daily_stats_overview_summary', $overview_summary) . 
        islandora_daily_stats_js_summary_block($models_summary);
 
-  
-  foreach ($models_summary as $model_summary) {
-    $summary .= theme('islandora_daily_stats_model_summary', $model_summary);
+  $themed_model_summaries = array();
+  foreach ($models_summary as $model_summary) {   
+    $themed_model_summaries[] = theme('islandora_daily_stats_model_summary', $model_summary);
   }
+
+  // Create another overview summary block that displays the Pages/book averages.
+
+
+  $summary .= implode("", $themed_model_summaries);
 
   return $summary;
 }

@@ -6,5 +6,6 @@
     <div class="value cell_numeric"><?php print number_format($today)  ; ?></div><label>Total Objects Today</label><br>
     <div class="value cell_numeric"><?php print number_format($yesterday)  ; ?></div><label>New Objects yesterday</label>
     <br>
+    <?php if (isset($page_averages)) { print $page_averages; } ?>
   </div>
 <br style="clear:both">
