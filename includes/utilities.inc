@@ -274,14 +274,17 @@ function islandora_daily_stats_get_model_summary($model) {
   $ago_14_days = islandora_daily_stats_get_last_date($model, 14);
   $ago_30_days = islandora_daily_stats_get_last_date($model, 30);
   $ago_60_days = islandora_daily_stats_get_last_date($model, 60);
+  $ago_365_days = islandora_daily_stats_get_last_date($model, 365);
 
   $today_count = islandora_daily_stats_get_count_on_date($model, $today);
   $yesterday_count = islandora_daily_stats_get_count_on_date($model, $yesterday);
   $new_today = $today_count - $yesterday_count;
   $last_7_count = islandora_daily_stats_get_count_on_date($model, $ago_7_days);
   $prev_7_days = islandora_daily_stats_get_count_on_date($model, $ago_14_days);
+  $prev_365_days = islandora_daily_stats_get_count_on_date($model, $ago_365_days);
   $new_in_last_week = $today_count - $last_7_count;
   $new_in_two_weeks = $today_count - $prev_7_days;
+  $new_last_year = $today_count - $prev_365_days;
   $last_30_count = islandora_daily_stats_get_count_on_date($model, $ago_30_days);
   $prev_30_days = islandora_daily_stats_get_count_on_date($model, $ago_60_days);
   $new_in_last_month = $today_count - $last_30_count;
@@ -296,6 +299,8 @@ function islandora_daily_stats_get_model_summary($model) {
       'last_7_count' => $last_7_count,
       'new_in_two_weeks' => $new_in_two_weeks,
       'prev_7_days' => $prev_7_days,
+      'prev_365_days' => $prev_365_days,
+      'new_last_year' => $new_last_year,
       'new_in_last_month' => $new_in_last_month,
       'last_30_count' => $last_30_count,
       'new_in_two_months' => $new_in_two_months,

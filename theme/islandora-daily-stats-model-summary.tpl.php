@@ -10,4 +10,6 @@
       <span class="cell_numeric sub_value"><?php print number_format($last_30_count); ?></span><br>
     <div class="value cell_numeric"><?php print number_format($new_in_two_months); ?></div><label>Added in last 60 days</label>
       <span class="cell_numeric sub_value"><?php print number_format($prev_30_days); ?></span><br>
+    <div class="value cell_numeric"><?php print number_format($new_last_year); ?></div><label>Added in last year (365 days)</label>
+      <span class="cell_numeric sub_value"><?php print number_format($prev_365_days); ?></span><br>
   </div>
