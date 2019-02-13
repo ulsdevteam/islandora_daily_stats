@@ -24,10 +24,15 @@
 
         // Set chart options
         var options = {
-          'title': 'How many objects of each model',
-          'width': 400,
-          'height': 300,
-          'is3D': true,
+          title: 'How many objects of each model',
+          sliceVisibilityThreshold: .000001,
+          legend: {
+            textStyle: {fontSize: 8,}
+          },
+          chartArea: {width: '95%'},
+          width: 490,
+          height: 330,
+          is3D: true,
         };
 
         // Instantiate and draw our chart, passing in some options.
