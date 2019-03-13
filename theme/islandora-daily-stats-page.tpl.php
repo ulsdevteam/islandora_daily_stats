@@ -1,5 +1,5 @@
 <div class="filter_links"><?php print $filter_links; ?></div>
-<div id="chart_dailystats_div" style="width: 1000px; height: 500px"></div>
+<div id="chart_dailystats_div" style="width: 1700px; height: 500px; margin:auto auto"></div>
     <script type="text/javascript">
       google.charts.load('current', {'packages':['line']});
       google.charts.setOnLoadCallback(drawChart);
@@ -28,7 +28,7 @@
           title: 'Number of objects over time',
           subtitle: 'by object model'
         },
-        width: 1000,
+        width: 1700,
         height: 500,
         vAxis: {
           format: 'decimal'
@@ -46,4 +46,4 @@
     }
   </script>
 
-<?php print $stats_table; ?>
+<?php /* print $stats_table; */ ?>
